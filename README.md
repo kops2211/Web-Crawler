@@ -40,7 +40,7 @@ Open in Browser
 
 Navigate to http://localhost:8501 in your browser to use the app.
 
-Usage
+#How to Use
 1. Enter a target URL (e.g., http://books.toscrape.com).
 2. Enter max pages to crawl.
 3. Optionally enter keywords to search in page content.
