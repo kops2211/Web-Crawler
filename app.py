@@ -8,8 +8,13 @@ st.set_page_config(page_title="Web Crawler", layout="centered")
 st.title(" Web Crawler ")
 
 target_url = st.text_input("Start URL", crawler.TARGET_URL)
-max_pages = st.slider("Max Pages to Crawl", 1, 100, crawler.MAX_CRAWL)
 keywords_input = st.text_input("Keywords (comma-separated)", ",".join(crawler.KEYWORDS))
+max_pages_input = st.text_input("Max Pages to Crawl", str(crawler.MAX_CRAWL))
+try:
+    max_pages = int(max_pages_input)
+except ValueError:
+    max_pages = crawler.MAX_CRAWL  # fallback to default if input is invalid
+    st.warning("Please enter a valid number for max pages.")
 
 if st.button("Start Crawling"):
     if not target_url.strip():
