@@ -93,7 +93,7 @@ if st.session_state.get('crawl_complete', False):
             key="download_all" 
         )
     
-    
+    st.markdown("Download Individual File Below")
     if os.path.exists("crawler_output/pages.csv"):
         df_pages = pd.read_csv("crawler_output/pages.csv")
         st.download_button(
