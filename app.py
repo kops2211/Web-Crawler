@@ -1,75 +1,137 @@
 import streamlit as st
-import crawler 
+import crawler
 import os
 import io
-import zipfile        
+import zipfile
+from datetime import datetime
+import pandas as pd
+
+if 'crawl_complete' not in st.session_state:
+    st.session_state.crawl_complete = False
+    st.session_state.crawl_stats = {
+        'pages': 0,
+        'images': 0,
+        'links': 0,
+        'keyword_matches': 0
+    }
 
 st.set_page_config(page_title="Web Crawler", layout="centered")
-st.title(" Web Crawler ")
+st.title("Web Crawler")
 
 target_url = st.text_input("Start URL", crawler.TARGET_URL)
-keywords_input = st.text_input("Keywords (comma-separated)", ",".join(crawler.KEYWORDS))
-max_pages_input = st.text_input("Max Pages to Crawl", str(crawler.MAX_CRAWL))
-try:
-    max_pages = int(max_pages_input)
-except ValueError:
-    max_pages = crawler.MAX_CRAWL  # fallback to default if input is invalid
-    st.warning("Please enter a valid number for max pages.")
+max_pages = st.text_input("Max Pages to Crawl", str(crawler.MAX_CRAWL))
+keywords_input = st.text_input("Keywords (comma separated)", ",".join(crawler.KEYWORDS))
 
-if st.button("Start Crawling"):
-    if not target_url.strip():
-        st.error("Please enter a valid Start URL.")
-    else:
-        crawler.TARGET_URL = target_url
-    crawler.MAX_CRAWL = max_pages
-    crawler.KEYWORDS.clear()
-    crawler.KEYWORDS.extend([kw.strip() for kw in keywords_input.split(",") if kw.strip()])
-
-    crawler.high_priority_queue.queue.clear()
-    crawler.low_priority_queue.queue.clear()
-    crawler.visited_urls.clear()
-    crawler.all_links.clear()
-    crawler.all_images.clear()
-    crawler.keyword_matches.clear()
+def reset_crawler():
+    crawler.high_priority_queue = crawler.Queue()
+    crawler.low_priority_queue = crawler.Queue()
+    crawler.visited_urls = set()
+    crawler.all_pages = set()
+    crawler.all_images = set()
+    crawler.all_links_found = set()
+    crawler.keyword_matches = {}
     crawler.high_priority_queue.put(crawler.TARGET_URL)
 
-    st.info(f"Starting crawl of {crawler.TARGET_URL} ...")
-    with st.spinner("Crawling in progress..."):
-        crawler.crawl()
-        crawler.save_results()
-    
-
-    
+def create_zip():
     zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for filename in ["crawled_links.csv", "crawled_images.csv", "keyword_matches.csv"]:
-            file_path = os.path.join(crawler.output_dir, filename)
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for filename in ['pages.csv', 'images.csv', 'keyword_matches.csv', 'all_links.csv']:
+            file_path = os.path.join("crawler_output", filename)
             if os.path.exists(file_path):
                 zip_file.write(file_path, arcname=filename)
     zip_buffer.seek(0)
+    return zip_buffer
 
-    st.session_state["zip_file"] = zip_buffer
-    st.session_state["results_saved"] = True
+if st.button("Start Crawling", type="primary"):
+    if not target_url.strip():
+        st.error("Please enter a valid URL")
+    else:
+        try:
+            crawler.TARGET_URL = target_url.strip()
+            crawler.MAX_CRAWL = int(max_pages)
+            crawler.KEYWORDS = [kw.strip() for kw in keywords_input.split(",") if kw.strip()]
+            
+            reset_crawler()
+            
+            with st.spinner(f"Crawling {crawler.TARGET_URL}..."):
+                crawler.crawl()
+                crawler.save_results()
+                
+                st.session_state.crawl_complete = True
+                st.session_state.zip_file = create_zip()
+                st.session_state.crawl_stats = {
+                    'pages': len(crawler.all_pages),
+                    'images': len(crawler.all_images),
+                    'links': len(crawler.all_links_found),
+                    'keyword_matches': len(crawler.keyword_matches)
+                }
+            
+            st.success("Crawling completed!")
+        except ValueError:
+            st.error("Please enter a valid number for max pages")
 
-    st.success("Crawling completed!")
+if st.session_state.get('crawl_complete', False):
+    st.markdown("## Results")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Pages", st.session_state.crawl_stats['pages'])
+    with col2:
+        st.metric("Images", st.session_state.crawl_stats['images'])
+    with col3:
+        st.metric("Links Found", st.session_state.crawl_stats['links'])
+    with col4:
+        st.metric("Keyword Matches", st.session_state.crawl_stats['keyword_matches'])
+    
 
-    if st.session_state.get("results_saved", False):
-        st.markdown("#Summary")
-        st.write(f"- Total Links: {len(crawler.all_links)}")
-        st.write(f"- Total Images: {len(crawler.all_images)}")
-        st.write(f"- Pages with Keywords: {len(crawler.keyword_matches)}")
-
-        if st.session_state.get("keyword_matches"):
-            with st.expander("View Keyword Matches"):
-                for url, keywords in st.session_state["keyword_matches"].items():
-                    st.markdown(f"- [{url}]({url}) → `{', '.join(keywords)}`")
-
-        st.markdown("Download All Results")
-
-        if "zip_file" in st.session_state:
+    if st.session_state.get('zip_file'):
+        st.download_button(
+            label="Download All Results (ZIP)",
+            data=st.session_state.zip_file,
+            file_name=f"crawl_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+            mime="application/zip",
+            key="download_all" 
+        )
+    
+    
+    if os.path.exists("crawler_output/pages.csv"):
+        df_pages = pd.read_csv("crawler_output/pages.csv")
+        st.download_button(
+            label="Download Pages Data",
+            data=df_pages.to_csv(index=False).encode('utf-8'),
+            file_name="pages.csv",
+            mime="text/csv",
+            key="download_pages"  
+        )
+    
+    if os.path.exists("crawler_output/images.csv"):
+        df_images = pd.read_csv("crawler_output/images.csv")
+        st.download_button(
+            label="Download Images Data",
+            data=df_images.to_csv(index=False).encode('utf-8'),
+            file_name="images.csv",
+            mime="text/csv",
+            key="download_images"  
+        )
+    
+    if os.path.exists("crawler_output/all_links.csv"):
+        df_links = pd.read_csv("crawler_output/all_links.csv")
+        st.download_button(
+            label="Download Links Data",
+            data=df_links.to_csv(index=False).encode('utf-8'),
+            file_name="all_links.csv",
+            mime="text/csv",
+            key="download_links"  
+        )
+    
+    if crawler.keyword_matches and os.path.exists("crawler_output/keyword_matches.csv"):
+        with st.expander("View Keyword Matches"):
+            df_keywords = pd.read_csv("crawler_output/keyword_matches.csv")
+            st.dataframe(df_keywords)
             st.download_button(
-                label="⬇Download All CSVs as ZIP",
-                data=st.session_state["zip_file"],
-                file_name="crawler_results.zip",
-                mime="application/zip"
+                label="Download Keyword Matches",
+                data=df_keywords.to_csv(index=False).encode('utf-8'),
+                file_name="keyword_matches.csv",
+                mime="text/csv",
+                key="download_keywords"  
             )
