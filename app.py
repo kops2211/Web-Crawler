@@ -93,7 +93,7 @@ if st.session_state.get('crawl_complete', False):
             key="download_all" 
         )
     
-    st.markdown("Download Individual File Below")
+    st.markdown("Or Download Individual Files")
     if os.path.exists("crawler_output/pages.csv"):
         df_pages = pd.read_csv("crawler_output/pages.csv")
         st.download_button(
@@ -125,13 +125,12 @@ if st.session_state.get('crawl_complete', False):
         )
     
     if crawler.keyword_matches and os.path.exists("crawler_output/keyword_matches.csv"):
-        with st.expander("View Keyword Matches"):
-            df_keywords = pd.read_csv("crawler_output/keyword_matches.csv")
-            st.dataframe(df_keywords)
-            st.download_button(
-                label="Download Keyword Matches",
-                data=df_keywords.to_csv(index=False).encode('utf-8'),
-                file_name="keyword_matches.csv",
-                mime="text/csv",
-                key="download_keywords"  
-            )
+        df_keywords = pd.read_csv("crawler_output/keyword_matches.csv")
+        st.dataframe(df_keywords)
+        st.download_button(
+            label="Download Keyword Matches",
+            data=df_keywords.to_csv(index=False).encode('utf-8'),
+            file_name="keyword_matches.csv",
+            mime="text/csv",
+            key="download_keywords"  
+        )
