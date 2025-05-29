@@ -94,15 +94,6 @@ if st.session_state.get('crawl_complete', False):
         )
     
     st.markdown("Or Download Individual Files")
-    if os.path.exists("crawler_output/pages.csv"):
-        df_pages = pd.read_csv("crawler_output/pages.csv")
-        st.download_button(
-            label="Download Pages Data",
-            data=df_pages.to_csv(index=False).encode('utf-8'),
-            file_name="pages.csv",
-            mime="text/csv",
-            key="download_pages"  
-        )
     
     if os.path.exists("crawler_output/images.csv"):
         df_images = pd.read_csv("crawler_output/images.csv")
@@ -123,14 +114,22 @@ if st.session_state.get('crawl_complete', False):
             mime="text/csv",
             key="download_links"  
         )
-    
-    if crawler.keyword_matches and os.path.exists("crawler_output/keyword_matches.csv"):
-        df_keywords = pd.read_csv("crawler_output/keyword_matches.csv")
-        st.dataframe(df_keywords)
-        st.download_button(
-            label="Download Keyword Matches",
-            data=df_keywords.to_csv(index=False).encode('utf-8'),
-            file_name="keyword_matches.csv",
-            mime="text/csv",
-            key="download_keywords"  
-        )
+        
+        
+    with st.expander("View keyword matched links"):
+        if crawler.keyword_matches and os.path.exists("crawler_output/keyword_matches.csv"):
+            df_keywords = pd.read_csv("crawler_output/keyword_matches.csv")
+            st.download_button(
+                label="Download Keyword Matches",
+                data=df_keywords.to_csv(index=False).encode('utf-8'),
+                file_name="keyword_matches.csv",
+                mime="text/csv",
+                key="download_keywords"  
+            )
+            st.dataframe(df_keywords)
+
+    with st.expander("View pages links"):
+        if os.path.exists("crawler_output/pages.csv"):
+            df_pages = pd.read_csv("crawler_output/pages.csv")
+            st.dataframe(df_pages)
+        
