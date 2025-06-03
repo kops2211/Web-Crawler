@@ -151,24 +151,24 @@ def save_results():
         writer = csv.writer(f)
         writer.writerow(['Title', 'URL', 'Timestamp'])
         for url, title, timestamp in sorted(all_pages, key=lambda x: x[2], reverse=True):
-            writer.writerow([title, url, timestamp])
+            writer.writerow([title, url, timestamp])  # Plain URL
     
     with open(os.path.join("crawler_output", 'images.csv'), 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(['Image URL', 'Alt Text', 'Page Title', 'Source URL', 'Timestamp', 'File Type'])
         for img_url, alt, title, src_url, timestamp in sorted(all_images, key=lambda x: x[4], reverse=True):
             file_type = os.path.splitext(img_url)[1][1:].upper() or "UNKNOWN"
-            writer.writerow([img_url, alt, title, src_url, timestamp, file_type])
+            writer.writerow([img_url, alt, title, src_url, timestamp, file_type])  # Plain URLs
     
     with open(os.path.join("crawler_output", 'all_links.csv'), 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(['Link URL', 'Link Text', 'Page Title', 'Source URL', 'Timestamp'])
         for link_url, link_text, page_title, source_url, timestamp in sorted(all_links_found, key=lambda x: x[4], reverse=True):
-            writer.writerow([link_url, link_text, page_title, source_url, timestamp])
+            writer.writerow([link_url, link_text, page_title, source_url, timestamp])  # Plain URLs
     
     if keyword_matches:
         with open(os.path.join("crawler_output", 'keyword_matches.csv'), 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(['Page Title', 'URL', 'Keywords', 'Timestamp'])
             for url, data in keyword_matches.items():
-                writer.writerow([data['title'], url, ', '.join(data['keywords']), data['timestamp']])
+                writer.writerow([data['title'], url, ', '.join(data['keywords']), data['timestamp']])  # Plain URL
