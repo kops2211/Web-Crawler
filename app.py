@@ -97,13 +97,13 @@ if st.session_state.get('crawl_complete', False):
 
     st.markdown("Or Download Individual Files")
 
-    with st.expander("📌 Keyword Matches", expanded=False):
+    with st.expander("Keyword Matches", expanded=False):
         if crawler.keyword_matches and os.path.exists("crawler_output/keyword_matches.csv"):
             df_keywords = pd.read_csv("crawler_output/keyword_matches.csv")
 
             df_display = df_keywords.copy()
             df_display['URL'] = df_display['URL'].apply(
-                lambda x: f'<a class="table-link" href="{x}" target="_blank">🔗 {x}</a>'
+                lambda x: f'<a class="table-link" href="{x}" target="_blank">{x}</a>'
             )
 
             st.download_button(
@@ -118,13 +118,13 @@ if st.session_state.get('crawl_complete', False):
                 unsafe_allow_html=True
             )
 
-    with st.expander("📄 Pages", expanded=False):
+    with st.expander("Pages", expanded=False):
         if os.path.exists("crawler_output/pages.csv"):
             df_pages = pd.read_csv("crawler_output/pages.csv")
 
             df_display = df_pages.copy()
             df_display['URL'] = df_display['URL'].apply(
-                lambda x: f'<a class="table-link" href="{x}" target="_blank">🔗 {x}</a>'
+                lambda x: f'<a class="table-link" href="{x}" target="_blank"> {x}</a>'
             )
 
             st.download_button(
@@ -140,15 +140,15 @@ if st.session_state.get('crawl_complete', False):
             )
 
     if os.path.exists("crawler_output/images.csv"):
-        with st.expander("🖼️ Images", expanded=False):
+        with st.expander(" Images", expanded=False):
             df_images = pd.read_csv("crawler_output/images.csv")
 
             df_display = df_images.copy()
             df_display['Image URL'] = df_display['Image URL'].apply(
-                lambda x: f'<a class="table-link" href="{x}" target="_blank">🖼️ {x}</a>'
+                lambda x: f'<a class="table-link" href="{x}" target="_blank"> {x}</a>'
             )
             df_display['Source URL'] = df_display['Source URL'].apply(
-                lambda x: f'<a class="table-link" href="{x}" target="_blank">📄 {x}</a>'
+                lambda x: f'<a class="table-link" href="{x}" target="_blank"> {x}</a>'
             )
 
             st.download_button(
@@ -164,15 +164,15 @@ if st.session_state.get('crawl_complete', False):
             )
 
     if os.path.exists("crawler_output/all_links.csv"):
-        with st.expander("🔗 All Links", expanded=False):
+        with st.expander("All Links", expanded=False):
             df_links = pd.read_csv("crawler_output/all_links.csv")
 
             df_display = df_links.copy()
             df_display['Link URL'] = df_display['Link URL'].apply(
-                lambda x: f'<a class="table-link" href="{x}" target="_blank">🔗 {x}</a>'
+                lambda x: f'<a class="table-link" href="{x}" target="_blank"> {x}</a>'
             )
             df_display['Source URL'] = df_display['Source URL'].apply(
-                lambda x: f'<a class="table-link" href="{x}" target="_blank">📄 {x}</a>'
+                lambda x: f'<a class="table-link" href="{x}" target="_blank"> {x}</a>'
             )
 
             st.download_button(
